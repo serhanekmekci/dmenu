@@ -265,7 +265,8 @@ drawmenu(void)
 	drw_rect(drw, 0, 0, mw, mh, 1, 1);
 
 	if (prompt && *prompt) {
-		drw_setscheme(drw, scheme[SchemeSel]);
+		if (colorprompt)
+			drw_setscheme(drw, scheme[SchemeSel]);
 		x = drw_text(drw, x, 0, promptw, bh, lrpad / 2, prompt, 0);
 	}
 	/* draw input field */
@@ -796,8 +797,11 @@ buttonpress(XEvent *e)
 	}
 	if (ev->button != Button1)
 		return;
+	/* disabled below, needs to be fixed */
+	/*
 	if (ev->state & ~ControlMask)
 		return;
+	*/
 	if (lines > 0) {
 		/* vertical list: (ctrl)left-click on item */
 		w = mw - x;
@@ -888,7 +892,6 @@ mousemove(XEvent *e)
 		}
 	}
 }
-
 
 static void
 paste(void)
@@ -1161,7 +1164,6 @@ readxresources(void) {
 			colors[SchemeNormHighlight][ColBg] = strdup(xval.addr);
 		else
 			colors[SchemeNormHighlight][ColBg] = strdup(colors[SchemeNormHighlight][ColBg]);
-
 		if (XrmGetResource(xdb, "dmenu.highlightforeground", "*", &type, &xval))
 			colors[SchemeNormHighlight][ColFg] = strdup(xval.addr);
 		else
@@ -1174,6 +1176,15 @@ readxresources(void) {
 			colors[SchemeSelHighlight][ColFg] = strdup(xval.addr);
 		else
 			colors[SchemeSelHighlight][ColFg] = strdup(colors[SchemeSelHighlight][ColFg]);
+		/* SchemeOut */
+		if (XrmGetResource(xdb, "dmenu.outbackground", "*", &type, &xval))
+			colors[SchemeOut][ColBg] = strdup(xval.addr);
+		else
+			colors[SchemeOut][ColBg] = strdup(colors[SchemeOut][ColBg]);
+		if (XrmGetResource(xdb, "dmenu.outforeground", "*", &type, &xval))
+			colors[SchemeOut][ColFg] = strdup(xval.addr);
+		else
+			colors[SchemeOut][ColFg] = strdup(colors[SchemeOut][ColFg]);
 
 		XrmDestroyDatabase(xdb);
 	}
