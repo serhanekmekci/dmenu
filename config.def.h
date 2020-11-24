@@ -10,7 +10,7 @@ static const char *fonts[] = {
 	"monospace:size=10"
 };
 
-static const unsigned int bgalpha = 0xa0;
+static const unsigned int bgalpha = 0x78;
 static const unsigned int fgalpha = OPAQUE;
 
 static const char *prompt      = NULL;      /* -p  option; prompt to the left of input field */
@@ -18,8 +18,8 @@ static const char *colors[SchemeLast][2] = {
 	/*     fg         bg       */
 	[SchemeNorm] = { "#bbbbbb", "#222222" },
 	[SchemeSel] = { "#eeeeee", "#005577" },
-	[SchemeNormHighlight] = { "#ffc978", "#222222" },
-	[SchemeSelHighlight] = { "#ffc978", "#005577" },
+	[SchemeNormHighlight] = { "#f14421", "#ff79c6" },
+	[SchemeSelHighlight] = { "#ff6e67", "#f73232" },
 	[SchemeOut] = { "#000000", "#00ffff" },
 };
 
