@@ -31,7 +31,9 @@
 #define OPAQUE 0xFFU
 
 /* enums */
-enum { SchemeNorm, SchemeSel, SchemeOut, SchemeLast }; /* color schemes */
+enum { SchemeNorm, SchemeSel, SchemeNormHighlight, SchemeSelHighlight,
+       SchemeOut, SchemeLast }; /* color schemes */
+
 
 struct item {
 	char *text;
@@ -66,7 +68,7 @@ static Colormap cmap;
 static Clr *scheme[SchemeLast];
 
 /* Temporary arrays to allow overriding xresources values */
-static char *colortemp[4];
+static char *colortemp[8];
 static char *tempfonts;
 
 #include "config.h"
@@ -177,9 +179,49 @@ cistrstr(const char *s, const char *sub)
 	return NULL;
 }
 
+static void
+drawhighlights(struct item *item, int x, int y, int maxw)
+{
+	int i, indent;
+	char *highlight;
+	char c;
+
+	if (!(strlen(item->text) && strlen(text)))
+		return;
+
+	drw_setscheme(drw, scheme[item == sel
+	                   ? SchemeSelHighlight
+	                   : SchemeNormHighlight]);
+	for (i = 0, highlight = item->text; *highlight && text[i];) {
+		if (*highlight == text[i]) {
+			/* get indentation */
+			c = *highlight;
+			*highlight = '\0';
+			indent = TEXTW(item->text);
+			*highlight = c;
+
+			/* highlight character */
+			c = highlight[1];
+			highlight[1] = '\0';
+			drw_text(
+				drw,
+				x + indent - (lrpad / 2),
+				y,
+				MIN(maxw - indent, TEXTW(highlight) - lrpad),
+				bh, 0, highlight, 0
+			);
+			highlight[1] = c;
+			i++;
+		}
+		highlight++;
+	}
+}
+
+
 static int
 drawitem(struct item *item, int x, int y, int w)
 {
+	int r;
 	if (item == sel)
 		drw_setscheme(drw, scheme[SchemeSel]);
 	else if (item->out)
@@ -187,7 +229,9 @@ drawitem(struct item *item, int x, int y, int w)
 	else
 		drw_setscheme(drw, scheme[SchemeNorm]);
 
-	return drw_text(drw, x, y, w, bh, lrpad / 2, item->text, 0);
+	r = drw_text(drw, x, y, w, bh, lrpad / 2, item->text, 0);
+	drawhighlights(item, x, y, w);
+	return r;
 }
 
 static void
@@ -999,7 +1043,8 @@ usage(void)
 {
 	fputs("usage: dmenu [-bfiv] [-l lines] [-p prompt] [-fn font] [-m monitor]\n"
 	      "             [-h height]\n"
-	      "             [-nb color] [-nf color] [-sb color] [-sf color] [-w windowid]\n", stderr);
+	      "             [-nb color] [-nf color] [-sb color] [-sf color]\n"
+	      "             [-nhb color] [-nhf color] [-shb color] [-shf color] [-w windowid]\n", stderr);
 	exit(1);
 }
 
@@ -1033,6 +1078,24 @@ readxresources(void) {
 			colors[SchemeSel][ColFg] = strdup(xval.addr);
 		else
 			colors[SchemeSel][ColFg] = strdup(colors[SchemeSel][ColFg]);
+		/* fuzzymatch highlight */
+		if (XrmGetResource(xdb, "dmenu.highlightbackground", "*", &type, &xval))
+			colors[SchemeNormHighlight][ColBg] = strdup(xval.addr);
+		else
+			colors[SchemeNormHighlight][ColBg] = strdup(colors[SchemeNormHighlight][ColBg]);
+
+		if (XrmGetResource(xdb, "dmenu.highlightforeground", "*", &type, &xval))
+			colors[SchemeNormHighlight][ColFg] = strdup(xval.addr);
+		else
+			colors[SchemeNormHighlight][ColFg] = strdup(colors[SchemeNormHighlight][ColFg]);
+		if (XrmGetResource(xdb, "dmenu.higlightselbackground", "*", &type, &xval))
+			colors[SchemeSelHighlight][ColBg] = strdup(xval.addr);
+		else
+			colors[SchemeSelHighlight][ColBg] = strdup(colors[SchemeSelHighlight][ColBg]);
+		if (XrmGetResource(xdb, "dmenu.highlightselforeground", "*", &type, &xval))
+			colors[SchemeSelHighlight][ColFg] = strdup(xval.addr);
+		else
+			colors[SchemeSelHighlight][ColFg] = strdup(colors[SchemeSelHighlight][ColFg]);
 
 		XrmDestroyDatabase(xdb);
 	}
@@ -1091,6 +1154,16 @@ main(int argc, char *argv[])
 			colortemp[2] = argv[++i];
 		else if (!strcmp(argv[i], "-sf"))  /* selected foreground color */
 			colortemp[3] = argv[++i];
+			//colors[SchemeSel][ColFg] = argv[++i];
+		/* fuzzymatch highlight */
+		else if (!strcmp(argv[i], "-nhb")) /* normal hi background color */
+			colortemp[4] = argv[++i];
+		else if (!strcmp(argv[i], "-nhf")) /* normal hi foreground color */
+			colortemp[5] = argv[++i];
+		else if (!strcmp(argv[i], "-shb")) /* selected hi background color */
+			colortemp[6] = argv[++i];
+		else if (!strcmp(argv[i], "-shf")) /* selected hi foreground color */
+			colortemp[7] = argv[++i];
 		else if (!strcmp(argv[i], "-w"))   /* embedding window id */
 			embed = argv[++i];
 		else
@@ -1121,6 +1194,15 @@ main(int argc, char *argv[])
 	   colors[SchemeSel][ColBg]  = strdup(colortemp[2]);
 	if ( colortemp[3])
 	   colors[SchemeSel][ColFg]  = strdup(colortemp[3]);
+	/* fuzzymatch highlight */
+	if ( colortemp[4])
+	   colors[SchemeNormHighlight][ColBg] = strdup(colortemp[4]);
+	if ( colortemp[5])
+	   colors[SchemeNormHighlight][ColFg] = strdup(colortemp[5]);
+	if ( colortemp[6])
+	   colors[SchemeSelHighlight][ColBg]  = strdup(colortemp[6]);
+	if ( colortemp[7])
+	   colors[SchemeSelHighlight][ColFg]  = strdup(colortemp[7]);
 
 	if (!drw_fontset_create(drw, (const char**)fonts, LENGTH(fonts)))
 		die("no fonts could be loaded.");
