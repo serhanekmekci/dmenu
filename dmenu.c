@@ -1183,6 +1183,8 @@ readxresources(void) {
 			colors[SchemeOut][ColFg] = strdup(xval.addr);
 		else
 			colors[SchemeOut][ColFg] = strdup(colors[SchemeOut][ColFg]);
+		if (XrmGetResource(xdb, "dmenu.borderpx", "*", &type, &xval))
+			border_width = strtoul(xval.addr, NULL, 10);
 
 		XrmDestroyDatabase(xdb);
 	}
