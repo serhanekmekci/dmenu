@@ -33,7 +33,7 @@
 #define OPAQUE 0xFFU
 
 /* enums */
-enum { SchemeNorm, SchemeSel, SchemeNormHighlight, SchemeSelHighlight,
+enum { SchemeNorm, SchemeSel, SchemeNormHighlight, SchemeSelHighlight, SchemeBorder,
        SchemeOut, SchemeLast }; /* color schemes */
 
 struct item {
@@ -1082,19 +1082,18 @@ setup(void)
 	/* create menu window */
 	swa.override_redirect = managed ? False : True;
 	swa.background_pixel = scheme[SchemeNorm][ColBg].pixel;
-	swa.border_pixel = 0;
+	swa.border_pixel = scheme[SchemeNorm][ColFg].pixel;
 	swa.colormap = cmap;
 	swa.event_mask = ExposureMask | KeyPressMask | VisibilityChangeMask |
 	                 ButtonPressMask | PointerMotionMask;
 	win = XCreateWindow(dpy, parentwin, x, y, mw, mh, 0,
 	                    CopyFromParent, CopyFromParent, CopyFromParent,
-	                    CWOverrideRedirect | CWBackPixel | CWEventMask, &swa);
+	                    CWOverrideRedirect | CWBackPixel | CWBorderPixel | CWEventMask, &swa);
 	XSetClassHint(dpy, win, &ch);
 
 	win = XCreateWindow(dpy, parentwin, x, y, mw, mh, border_width,
 				        depth, InputOutput, visual,
 	                    CWOverrideRedirect | CWBackPixel | CWColormap |  CWEventMask | CWBorderPixel, &swa);
-					XSetWindowBorder(dpy, win, scheme[SchemeSel][ColBg].pixel);
 	              	XSetClassHint(dpy, win, &ch);
 
 	/* input methods */
