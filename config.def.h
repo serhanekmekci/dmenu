@@ -7,15 +7,15 @@ static int min_width = 500;                    /* minimum width when centered */
 static int fuzzy = 1;                      /* -F  option; if 0, dmenu doesn't use fuzzy matching     */
 static int colorprompt = 0;
 /* -fn option overrides fonts[0]; default X11 font or font set */
-static const char *fonts[] = {
+static char *fonts[] = {
 	"monospace:size=10"
 };
 
 static const unsigned int bgalpha = 0x78;
 static const unsigned int fgalpha = OPAQUE;
 
-static const char *prompt      = NULL;      /* -p  option; prompt to the left of input field */
-static const char *colors[SchemeLast][2] = {
+static char *prompt      = NULL;      /* -p  option; prompt to the left of input field */
+static char *colors[SchemeLast][2] = {
 	/*     fg         bg       */
 	[SchemeNorm] = { "#000000", "#ffffff" },
 	[SchemeSel] = { "#ffffff", "#000000" },
@@ -24,7 +24,7 @@ static const char *colors[SchemeLast][2] = {
 	[SchemeOut] = { "#ffffff", "#000000" },
 };
 
-static const unsigned int alphas[SchemeLast][2] = {
+static unsigned int alphas[SchemeLast][2] = {
 	/*		fgalpha		bgalphga	*/
 	[SchemeNorm] = { fgalpha, bgalpha },
 	[SchemeSel] = { fgalpha, bgalpha },
